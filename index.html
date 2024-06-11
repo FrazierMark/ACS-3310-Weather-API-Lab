@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Ms Merriweather</title>
+		<link rel="stylesheet" href="styles.css" />
+	</head>
+	<body>
+		<div class="container">
+			<h1 id="temp">
+				<!--Temp -->
+			</h1>
+			<p id="desc">
+				<!-- description -->
+			</p>
+			<form id="form">
+				<div>
+					<label>
+						<input type="radio" name="searchType" value="zip" checked /> Zip
+						Code
+					</label>
+					<label>
+						<input type="radio" name="searchType" value="city" /> City Name
+					</label>
+					<label>
+						<input type="radio" name="searchType" value="geo" /> Geolocation
+					</label>
+				</div>
+
+				<div id="zipInput">
+					<input
+						id="zip"
+						type="number"
+						placeholder="Zip code"
+						title="Please Enter a valid Zip Code"
+					/>
+				</div>
+
+				<div id="cityInput" style="display: none">
+					<input
+						id="city"
+						type="text"
+						placeholder="City name"
+						title="Please Enter a valid City Name"
+					/>
+				</div>
+
+				<div id="geoInput" style="display: none">
+					<input
+						id="lat"
+						type="number"
+						step="any"
+						placeholder="Latitude"
+						title="Enter Latitude"
+					/>
+					<input
+						id="lon"
+						type="number"
+						step="any"
+						placeholder="Longitude"
+						title="Enter Longitude"
+					/>
+				</div>
+
+				<button type="submit">Search</button>
+			</form>
+		</div>
+
+		<script type="module">
+			import Weather from './script.js';
+
+			const weatherApiKey = '467355df4c808dd6134a3b64e9ace282';
+			const weatherWorker = new Weather(weatherApiKey);
+
+			// Get Elements
+			const tempEl = document.getElementById('temp');
+			const descEl = document.getElementById('desc');
+			const formEl = document.getElementById('form');
+
+			const zipInput = document.getElementById('zip');
+			const cityInput = document.getElementById('city');
+			const latInput = document.getElementById('lat');
+			const lonInput = document.getElementById('lon');
+			const searchTypeInputs = document.querySelectorAll(
+				'input[name="searchType"]'
+			);
+
+			searchTypeInputs.forEach((input) => {
+				input.addEventListener('change', (e) => {
+					document.getElementById('zipInput').style.display =
+						e.target.value === 'zip' ? 'block' : 'none';
+					document.getElementById('cityInput').style.display =
+						e.target.value === 'city' ? 'block' : 'none';
+					document.getElementById('geoInput').style.display =
+						e.target.value === 'geo' ? 'block' : 'none';
+				});
+			});
+
+			const handleFormSubmit = async (e) => {
+				e.preventDefault();
+				const searchType = document.querySelector(
+					'input[name="searchType"]:checked'
+				).value;
+				let options = {};
+
+				if (searchType === 'zip') {
+					options.zip = zipInput.value;
+				} else if (searchType === 'city') {
+					options.city = cityInput.value;
+				} else if (searchType === 'geo') {
+					options.coords = {
+						lat: latInput.value,
+						lon: lonInput.value,
+					};
+				}
+
+				try {
+					const weatherData = await weatherWorker.getWeather(options);
+
+					if (weatherData) {
+						tempEl.innerHTML = `${weatherData.temp} ${weatherData.units}`;
+						descEl.innerHTML = weatherData.description;
+					} else {
+						tempEl.innerHTML = 'Error';
+						descEl.innerHTML = 'Could not fetch weather data';
+					}
+				} catch (error) {
+					console.error('Error fetching weather data:', error);
+					tempEl.innerHTML = 'Error';
+					descEl.innerHTML = 'An error occurred while fetching data';
+				}
+			};
+
+			// Define event listeners
+			formEl.addEventListener('submit', handleFormSubmit);
+		</script>
+		<script type="module" src="script.js"></script>
+	</body>
+</html>
